@@ -2,8 +2,17 @@
     Hi there
     
 </h1>
-
 <body>
     'this is text for the body'
     <a href="secret/secret.html">Secret</a>
+    <div id="weather"></div>
+
+<script>
+fetch("https://api.weather.gov/gridpoints/AKQ/36,76/forecast")
+  .then(response => response.json())
+  .then(data => {
+    document.getElementById("weather").innerHTML =
+      data.properties.periods[0].temperature + "°F";
+  });
+</script>
 </body>
