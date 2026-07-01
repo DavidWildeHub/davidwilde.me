@@ -1,0 +1,5 @@
+.responsive-image {
+  width: 100%;  /* Prevents the image from stretching larger than its original size */
+  max-width: 600px;
+  height: auto;     /* Maintains the original aspect ratio */
+}
