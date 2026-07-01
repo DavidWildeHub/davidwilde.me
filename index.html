@@ -1,9 +1,34 @@
-<h1>
-    Hi there
-    
-</h1>
-<body>
-    'this is text for the body'
+<head>
+<link rel="stylesheet" href="style.css">
+</head>
+
+
+<h1>David Wilde's Personal Website</h1>
+<h2>Projects</h2>
+<ul>
+  <li>Personal Website</li>
+  <li>Weather App</li> 
+    <ul>
+      <li>python</li>
+      <li>FASTapi</li>
+      <li>Uvicorn</li>  
+    </ul>
+  <li>PowerShell Automation</li>
+    <ul>
+      <li>Create a new user in Active Directory</li>
+    </ul>
+    <li><a href="garden.html">Gardening</a> </li>
+</ul>
+<h2>Courses</h2>
+  <ul>
+    <li>CSC 222 - Object Oriented Programming (Java)</li>
+  </ul>
+<h2>Certificates</h2>
+  <ul>
+    <li>ITIL 4 Cert</li>
+    <li>Google IT Helpdesk</li>
+  </ul>
+<h2>Resume</h2>
     <a href="secret/secret.html">Secret</a>
     <div id="weather"></div>
 
@@ -15,4 +40,3 @@ fetch("https://api.weather.gov/gridpoints/AKQ/36,76/forecast")
       data.properties.periods[0].temperature + "°F";
   });
 </script>
-</body>
