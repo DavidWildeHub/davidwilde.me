@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Nuance Cabinet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#eef0e4;
+    --paper-warm:#e6e8da;
+    --card:#f6f7ef;
+    --ink:#20261c;
+    --ink-soft:#4b5142;
+    --forest:#3f5233;
+    --forest-dark:#2c3a24;
+    --amber:#b6852f;
+    --amber-light:#e8c98a;
+    --rose:#a3524a;
+    --rose-light:#e8c3bf;
+    --sage:#6f7d5f;
+    --line: rgba(32,38,28,0.14);
+    --shadow: 0 1px 2px rgba(32,38,28,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .app{max-width:920px;margin:0 auto;padding:36px 22px 80px;}
+
+  header{margin-bottom:34px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--sage);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(34px, 6vw, 52px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+    color:var(--forest-dark);
+  }
+  .tagline{
+    font-size:16px;
+    color:var(--ink-soft);
+    max-width:520px;
+    margin:0 0 26px;
+  }
+  .tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .tab{
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    padding:10px 4px 12px;
+    margin-right:18px;
+    cursor:pointer;
+    border-bottom:2px solid transparent;
+    transition:color .15s;
+  }
+  .tab:hover{color:var(--forest-dark);}
+  .tab.active{color:var(--forest-dark);border-bottom-color:var(--amber);}
+  .tab:focus-visible, button:focus-visible, .card:focus-visible{outline:2px solid var(--forest);outline-offset:2px;}
+
+  /* ---- Browse view ---- */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0 22px;}
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .chip:hover{border-color:var(--forest);}
+  .chip.active{background:var(--forest);border-color:var(--forest);color:#fff;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:14px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:18px 18px 16px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:border-color .15s, transform .15s;
+    grid-column:span 1;
+  }
+  .card:hover{border-color:var(--forest);}
+  .card.expanded{
+    grid-column:1 / -1;
+    cursor:default;
+  }
+  .card-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    padding:2px 7px;
+    border-radius:100px;
+    white-space:nowrap;
+  }
+  .card h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:23px;
+    margin:6px 0 2px;
+    color:var(--ink);
+    width:100%;
+  }
+  .phonetic{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .card-detail{
+    max-height:0;
+    overflow:hidden;
+    opacity:0;
+    transition:max-height .25s ease, opacity .2s ease;
+  }
+  .card.expanded .card-detail{
+    max-height:900px;
+    opacity:1;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .def{margin:0 0 12px;font-size:15px;color:var(--ink-soft);font-style:italic;}
+  .swap{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .swap .plain{
+    text-decoration:line-through;
+    color:var(--ink-soft);
+    font-size:15px;
+  }
+  .swap .arrow{color:var(--sage);}
+  .swap .target{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:17px;
+    color:var(--forest-dark);
+  }
+  .nuance{font-size:15px;margin:0 0 16px;}
+  .spectrum{margin-bottom:16px;}
+  .spectrum-track{
+    height:6px;
+    border-radius:100px;
+    background:linear-gradient(90deg, #cfd3c3, var(--amber-light) 55%, var(--forest) 100%);
+    position:relative;
+  }
+  .spectrum-dot{
+    position:absolute;
+    top:50%;right:10%;
+    width:12px;height:12px;
+    background:var(--forest-dark);
+    border:2px solid var(--paper);
+    border-radius:50%;
+    transform:translate(50%,-50%);
+  }
+  .spectrum-labels{
+    display:flex;justify-content:space-between;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .nearmiss{
+    background:var(--paper-warm);
+    border-radius:4px;
+    padding:12px 14px;
+    margin-bottom:16px;
+  }
+  .nearmiss-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--rose);
+    margin-bottom:8px;
+  }
+  .nm-item{font-size:14px;margin-bottom:5px;color:var(--ink-soft);}
+  .nm-item:last-child{margin-bottom:0;}
+  .nm-item strong{color:var(--ink);}
+  .example{
+    font-size:15px;
+    margin:0;
+    padding-top:2px;
+    color:var(--ink);
+  }
+  .example strong{color:var(--forest-dark);}
+
+  /* ---- Drill view ---- */
+  .drill-stats{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:24px 0 18px;
+    display:flex;gap:20px;
+  }
+  .drill-stats b{color:var(--forest-dark);}
+  .drill-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:30px 28px;
+  }
+  .drill-eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--sage);
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    margin-bottom:14px;
+  }
+  .scenario{
+    font-family:'Fraunces', serif;
+    font-size:clamp(19px,3vw,24px);
+    font-weight:500;
+    line-height:1.45;
+    margin:0 0 26px;
+    color:var(--ink);
+  }
+  .scenario .blank{
+    display:inline-block;
+    min-width:90px;
+    border-bottom:2px solid var(--amber);
+    color:transparent;
+  }
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
+  @media (max-width:520px){.options{grid-template-columns:1fr;}}
+  .opt{
+    font-family:'Source Sans 3', sans-serif;
+    font-size:15px;
+    font-weight:600;
+    text-align:left;
+    padding:13px 16px;
+    background:var(--paper-warm);
+    border:1px solid var(--line);
+    border-radius:5px;
+    cursor:pointer;
+    color:var(--ink);
+    transition:border-color .15s, background .15s;
+  }
+  .opt:hover:not(:disabled){border-color:var(--forest);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:#dde6d3;border-color:var(--forest);color:var(--forest-dark);}
+  .opt.incorrect{background:var(--rose-light);border-color:var(--rose);color:var(--rose);}
+  .opt.reveal{background:#dde6d3;border-color:var(--forest);color:var(--forest-dark);}
+
+  .feedback{margin-top:22px;padding-top:20px;border-top:1px solid var(--line);}
+  .feedback-headline{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    margin:0 0 12px;
+  }
+  .feedback-headline.correct{color:var(--forest-dark);}
+  .feedback-headline.incorrect{color:var(--rose);}
+  .fb-row{font-size:14px;margin-bottom:8px;color:var(--ink-soft);}
+  .fb-row strong{color:var(--ink);}
+  .fb-row.target strong{color:var(--forest-dark);}
+  .next-btn{
+    margin-top:20px;
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    background:var(--forest);
+    color:#fff;
+    border:none;
+    padding:11px 20px;
+    border-radius:5px;
+    cursor:pointer;
+  }
+  .next-btn:hover{background:var(--forest-dark);}
+
+  [hidden]{display:none !important;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="eyebrow">A vocabulary tool for people who already speak english well</div>
+    <h1>The Nuance Cabinet</h1>
+    <p class="tagline">You already know the word. This finds the one that says exactly what you mean — with the texture, precision, or image a plainer word leaves out.</p>
+    <nav class="tabs">
+      <button class="tab active" data-view="browse">Browse the cabinet</button>
+      <button class="tab" data-view="drill">Drill</button>
+    </nav>
+  </header>
+
+  <main id="browseView">
+    <div class="filters" id="filters"></div>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <main id="drillView" hidden>
+    <div class="drill-stats">
+      <span>Score: <b id="scoreText">0/0</b></span>
+      <span>Mastered: <b id="masteredText">0</b> / <span id="totalWords"></span></span>
+    </div>
+    <div class="drill-card">
+      <div class="drill-eyebrow">Pick the word that paints the sharpest picture</div>
+      <div class="scenario" id="scenario"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback" hidden>
+        <div class="feedback-headline" id="fbHeadline"></div>
+        <div id="fbBody"></div>
+        <button class="next-btn" id="nextBtn">Next word →</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const WORDS = [
+  {word:"ubiquitous", phon:"yoo-BIK-wi-tuhs", pos:"adj.", cat:"Precision",
+   def:"present, appearing, or found everywhere.",
+   plain:"everywhere",
+   nuance:"\u201Ceverywhere\u201D is just a location claim. \u201CUbiquitous\u201D implies something has become so common it's nearly inescapable \u2014 there's a note of oversaturation in it.",
+   example:"Smartphones have become so ___ that we forget life without them.",
+   nearMiss:[{word:"common", why:"describes frequency, not the feeling of being inescapable."},{word:"popular", why:"implies being liked, not simply widespread."}]},
+  {word:"ephemeral", phon:"ih-FEM-er-uhl", pos:"adj.", cat:"Precision",
+   def:"lasting for a very short time.",
+   plain:"temporary",
+   nuance:"\u201CTemporary\u201D is neutral and administrative. \u201CEphemeral\u201D adds a wistful, almost poetic sense of fleeting beauty.",
+   example:"The cherry blossoms are ___, gone within a week of blooming.",
+   nearMiss:[{word:"brief", why:"measures duration only, misses the fragile, beautiful connotation."},{word:"fleeting", why:"close, but lacks ephemeral's more poetic, almost scientific precision."}]},
+  {word:"cogent", phon:"KOH-juhnt", pos:"adj.", cat:"Precision",
+   def:"clear, logical, and convincing.",
+   plain:"convincing",
+   nuance:"\u201CConvincing\u201D describes the effect on the listener. \u201CCogent\u201D describes the structure \u2014 an argument that's airtight, not just emotionally compelling.",
+   example:"She made a ___ case for restructuring the budget, each point building on the last.",
+   nearMiss:[{word:"persuasive", why:"can rely on emotion or charisma, not necessarily sound logic."},{word:"compelling", why:"describes how it feels to hear, not whether it actually holds up."}]},
+  {word:"salient", phon:"SAY-lee-uhnt", pos:"adj.", cat:"Precision",
+   def:"most noticeable or important.",
+   plain:"important",
+   nuance:"\u201CImportant\u201D is broad. \u201CSalient\u201D points to what stands out against a background \u2014 the detail your eye catches first.",
+   example:"The report's most ___ finding was buried in a footnote.",
+   nearMiss:[{word:"main", why:"suggests ranking, not visual or cognitive prominence."},{word:"key", why:"implies necessity, not the quality of standing out."}]},
+  {word:"nebulous", phon:"NEB-yuh-luhs", pos:"adj.", cat:"Precision",
+   def:"vague, cloudy, ill-defined.",
+   plain:"unclear",
+   nuance:"\u201CUnclear\u201D is a flat negative. \u201CNebulous\u201D evokes shapelessness, like fog \u2014 an idea that hasn't taken form yet.",
+   example:"His plans for the company remained ___ even after the meeting.",
+   nearMiss:[{word:"vague", why:"a close cousin, but flatter \u2014 nebulous carries the cloud imagery with it."},{word:"confusing", why:"describes the listener's reaction, not the idea's own lack of shape."}]},
+  {word:"prescient", phon:"PRESH-uhnt", pos:"adj.", cat:"Precision",
+   def:"having knowledge of events before they happen.",
+   plain:"predictive",
+   nuance:"\u201CPredictive\u201D is mechanical \u2014 a model predicts. \u201CPrescient\u201D suggests an almost uncanny foresight, personal and a little eerie.",
+   example:"Her warning about the market crash seems ___ in hindsight.",
+   nearMiss:[{word:"predictive", why:"fine for models and data, but sounds clinical applied to a person's insight."},{word:"accurate", why:"only judges correctness after the fact, not the quality of the foresight itself."}]},
+
+  {word:"gossamer", phon:"GOS-uh-mer", pos:"adj.", cat:"Vivid Imagery",
+   def:"extremely light, delicate, and insubstantial.",
+   plain:"thin",
+   nuance:"\u201CThin\u201D is a measurement. \u201CGossamer\u201D borrows from spider silk \u2014 it gives the reader a texture, not just a dimension.",
+   example:"A ___ mist clung to the valley at dawn.",
+   nearMiss:[{word:"thin", why:"correct but flat \u2014 no texture or light quality implied."},{word:"delicate", why:"close, but delicate can describe fragility of strength, not translucence."}]},
+  {word:"cavernous", phon:"KAV-er-nuhs", pos:"adj.", cat:"Vivid Imagery",
+   def:"resembling a cavern in vastness or emptiness.",
+   plain:"big",
+   nuance:"\u201CBig\u201D has no shape. \u201CCavernous\u201D gives you an echo, a ceiling you can't see, an emptiness that seems to swallow sound.",
+   example:"The abandoned warehouse felt ___, our footsteps echoing off unseen walls.",
+   nearMiss:[{word:"large", why:"pure size, with no sense of hollowness or echo."},{word:"spacious", why:"positive and inviting \u2014 cavernous implies emptiness bordering on eerie."}]},
+  {word:"sinewy", phon:"SIN-yoo-ee", pos:"adj.", cat:"Vivid Imagery",
+   def:"lean and muscular; tough and stringy.",
+   plain:"strong",
+   nuance:"\u201CStrong\u201D is generic power. \u201CSinewy\u201D pictures visible tendon and muscle \u2014 wiry strength, not bulk.",
+   example:"The climber's ___ arms pulled her up the last overhang.",
+   nearMiss:[{word:"muscular", why:"suggests bulk or mass; sinewy implies lean, corded strength instead."},{word:"tough", why:"describes resilience in general, not physical build."}]},
+  {word:"luminous", phon:"LOO-muh-nuhs", pos:"adj.", cat:"Vivid Imagery",
+   def:"full of or shedding light; glowing.",
+   plain:"bright",
+   nuance:"\u201CBright\u201D can be harsh, like a bright light in your eyes. \u201CLuminous\u201D glows from within \u2014 softer, often self-generated.",
+   example:"Her skin looked ___ in the candlelight.",
+   nearMiss:[{word:"bright", why:"can describe harsh, external light sources too."},{word:"shining", why:"implies a reflective surface, not an inner glow."}]},
+  {word:"desolate", phon:"DES-uh-lit", pos:"adj.", cat:"Vivid Imagery",
+   def:"deserted and bleak, devoid of comfort.",
+   plain:"empty",
+   nuance:"\u201CEmpty\u201D is neutral. \u201CDesolate\u201D adds emotional bleakness \u2014 a place that feels abandoned by hope, not just by people.",
+   example:"The old house stood ___, its windows dark for a decade.",
+   nearMiss:[{word:"empty", why:"a fact about occupancy, not an emotional register."},{word:"abandoned", why:"close, but focuses on the act of leaving rather than the resulting mood."}]},
+  {word:"labyrinthine", phon:"lab-uh-RIN-thin", pos:"adj.", cat:"Vivid Imagery",
+   def:"intricate and confusing, like a maze.",
+   plain:"complicated",
+   nuance:"\u201CComplicated\u201D is abstract. \u201CLabyrinthine\u201D gives you walls, turns, the physical sensation of being lost.",
+   example:"Navigating the hospital's ___ hallways took us twenty minutes.",
+   nearMiss:[{word:"complex", why:"a neutral, structural word with no sense of disorientation."},{word:"confusing", why:"describes the effect on the person, not the shape of the thing itself."}]},
+
+  {word:"specious", phon:"SPEE-shuhs", pos:"adj.", cat:"Argument & Rhetoric",
+   def:"superficially plausible but actually wrong.",
+   plain:"false",
+   nuance:"\u201CFalse\u201D is a flat verdict. \u201CSpecious\u201D describes the trap \u2014 an argument that looks sound until you examine it closely.",
+   example:"The ad's claim sounded convincing, but the logic was ___.",
+   nearMiss:[{word:"false", why:"states the conclusion but misses that it looked true at first glance."},{word:"wrong", why:"same issue \u2014 no sense of the surface plausibility that makes it dangerous."}]},
+  {word:"disingenuous", phon:"dis-in-JEN-yoo-uhs", pos:"adj.", cat:"Argument & Rhetoric",
+   def:"not candid; giving a false impression of sincerity.",
+   plain:"dishonest",
+   nuance:"\u201CDishonest\u201D is a blunt accusation. \u201CDisingenuous\u201D is sharper \u2014 pretending innocence while knowing better.",
+   example:"It felt ___ of him to ask \u2018what did I do wrong?\u2019 when he knew exactly what he'd done.",
+   nearMiss:[{word:"dishonest", why:"broader \u2014 doesn't capture the fake-innocence angle specifically."},{word:"deceptive", why:"implies active trickery; disingenuous is subtler and more passive."}]},
+  {word:"conflate", phon:"kuhn-FLAYT", pos:"verb", cat:"Argument & Rhetoric",
+   def:"combine two or more things into one, mistakenly treating them as identical.",
+   plain:"confuse",
+   nuance:"\u201CConfuse\u201D is a general muddle. \u201CConflate\u201D names the exact error \u2014 merging two distinct things into one.",
+   example:"Critics accused the senator of ___ correlation with causation.",
+   nearMiss:[{word:"confuse", why:"too general \u2014 doesn't name the specific error of merging two things."},{word:"mix up", why:"casual phrasing, imprecise about exactly what's being combined."}]},
+  {word:"equivocate", phon:"ih-KWIV-uh-kayt", pos:"verb", cat:"Argument & Rhetoric",
+   def:"use ambiguous language to conceal the truth or avoid commitment.",
+   plain:"avoid",
+   nuance:"\u201CAvoid\u201D could mean staying silent. \u201CEquivocate\u201D means talking a lot while committing to nothing at all.",
+   example:"Reporters pressed him for a yes or no, but he continued to ___.",
+   nearMiss:[{word:"avoid", why:"could mean saying nothing at all; equivocate means talking without ever answering."},{word:"dodge", why:"informal, and suggests a single deflection rather than sustained ambiguity."}]},
+  {word:"corroborate", phon:"kuh-ROB-uh-rayt", pos:"verb", cat:"Argument & Rhetoric",
+   def:"support a statement with independent evidence.",
+   plain:"confirm",
+   nuance:"\u201CConfirm\u201D can come from anywhere. \u201CCorroborate\u201D specifically means a second, independent source backs it up.",
+   example:"Two witnesses ___ her account of the accident.",
+   nearMiss:[{word:"confirm", why:"doesn't specify that the evidence is independent."},{word:"prove", why:"too strong \u2014 corroborate adds support, it doesn't guarantee certainty."}]},
+  {word:"untenable", phon:"un-TEN-uh-buhl", pos:"adj.", cat:"Argument & Rhetoric",
+   def:"not able to be maintained or defended against objection.",
+   plain:"impossible",
+   nuance:"\u201CImpossible\u201D is absolute. \u201CUntenable\u201D is about a position collapsing under pressure \u2014 it could stand, just not against scrutiny.",
+   example:"Once the numbers leaked, his position became ___.",
+   nearMiss:[{word:"impossible", why:"too absolute \u2014 untenable is about failing under argument, not physical impossibility."},{word:"weak", why:"describes strength generally, not the specific failure to withstand challenge."}]},
+
+  {word:"wistful", phon:"WIST-fuhl", pos:"adj.", cat:"Emotional Precision",
+   def:"having or showing a vague, regretful longing.",
+   plain:"sad",
+   nuance:"\u201CSad\u201D is heavy. \u201CWistful\u201D is lighter \u2014 a gentle, nostalgic ache, not real grief.",
+   example:"She looked ___ at old photos of her college years.",
+   nearMiss:[{word:"sad", why:"too heavy \u2014 wistful is softer, tinged with fondness rather than pain."},{word:"nostalgic", why:"close, but nostalgic can be happy; wistful always carries a trace of longing."}]},
+  {word:"disquiet", phon:"dis-KWY-it", pos:"noun", cat:"Emotional Precision",
+   def:"a feeling of anxiety or unease.",
+   plain:"worry",
+   nuance:"\u201CWorry\u201D is active and focused on something specific. \u201CDisquiet\u201D is a low hum of unease with no clear object.",
+   example:"A vague ___ settled over the office after the announcement.",
+   nearMiss:[{word:"worry", why:"usually attached to a specific cause; disquiet is more diffuse than that."},{word:"anxiety", why:"more clinical and intense; disquiet is quieter and more ambient."}]},
+  {word:"vexation", phon:"vek-SAY-shuhn", pos:"noun", cat:"Emotional Precision",
+   def:"the state of being irritated, especially by something trivial.",
+   plain:"annoyance",
+   nuance:"\u201CAnnoyance\u201D is mild and brief. \u201CVexation\u201D has an old-fashioned, slow-burn quality \u2014 irritation that's been sitting for a while.",
+   example:"The printer's constant jamming was a source of daily ___.",
+   nearMiss:[{word:"annoyance", why:"lighter and more momentary; vexation implies a lingering irritation."},{word:"frustration", why:"frustration usually blocks a goal; vexation is just ongoing minor irritation."}]},
+  {word:"trepidation", phon:"trep-i-DAY-shuhn", pos:"noun", cat:"Emotional Precision",
+   def:"a feeling of fear or anxiety about something that may happen.",
+   plain:"fear",
+   nuance:"\u201CFear\u201D can be sudden and sharp. \u201CTrepidation\u201D is anticipatory \u2014 a nervous dread building before an event.",
+   example:"She approached the interview with a mix of excitement and ___.",
+   nearMiss:[{word:"fear", why:"too strong and immediate; trepidation is quieter and more anticipatory."},{word:"nervousness", why:"close, but nervousness suggests physical jitters; trepidation is about dreading what's ahead."}]},
+  {word:"ambivalent", phon:"am-BIV-uh-luhnt", pos:"adj.", cat:"Emotional Precision",
+   def:"having mixed or contradictory feelings about something.",
+   plain:"unsure",
+   nuance:"\u201CUnsure\u201D implies missing information. \u201CAmbivalent\u201D means you do have strong feelings \u2014 they just pull in opposite directions.",
+   example:"He felt ___ about the promotion \u2014 thrilled by the title, dreading the hours.",
+   nearMiss:[{word:"unsure", why:"suggests missing information, not two competing emotions."},{word:"indifferent", why:"means not caring at all; ambivalent means caring intensely, in two directions at once."}]},
+  {word:"resigned", phon:"ri-ZYND", pos:"adj.", cat:"Emotional Precision",
+   def:"having accepted something unpleasant that one cannot change.",
+   plain:"accepting",
+   nuance:"\u201CAccepting\u201D can be peaceful, even chosen. \u201CResigned\u201D carries defeat \u2014 acceptance because fighting stopped feeling worth it.",
+   example:"By the third delay, he'd gone from angry to ___.",
+   nearMiss:[{word:"accepting", why:"can be a positive, chosen peace; resigned implies giving up instead."},{word:"defeated", why:"stronger and more dramatic; resigned is quieter, a settled kind of giving up."}]}
+];
+
+const CAT_COLORS = {
+  "Precision": {bg:"#f0e2c4", fg:"#7a5a1c"},
+  "Vivid Imagery": {bg:"#dbe6d1", fg:"#3f5233"},
+  "Argument & Rhetoric": {bg:"#eeccc7", fg:"#8a3d36"},
+  "Emotional Precision": {bg:"#dbe0d4", fg:"#5c6650"}
+};
+
+// ---------- Browse view ----------
+const CATS = ["All", ...Array.from(new Set(WORDS.map(w=>w.cat)))];
+let activeFilter = "All";
+
+function renderFilters(){
+  const el = document.getElementById('filters');
+  el.innerHTML = '';
+  CATS.forEach(cat=>{
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (cat===activeFilter ? ' active':'');
+    btn.textContent = cat;
+    btn.addEventListener('click', ()=>{ activeFilter = cat; renderFilters(); renderGrid(); });
+    el.appendChild(btn);
+  });
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const list = WORDS.filter(w => activeFilter==="All" || w.cat===activeFilter);
+  list.forEach((w, idx)=>{
+    const c = CAT_COLORS[w.cat];
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.tabIndex = 0;
+    card.innerHTML = `
+      <div class="card-head">
+        <span class="tag" style="background:${c.bg};color:${c.fg}">${w.cat}</span>
+        <h3>${w.word}</h3>
+        <span class="phonetic">/${w.phon}/ \u00B7 ${w.pos}</span>
+      </div>
+      <div class="card-detail">
+        <p class="def">${w.def}</p>
+        <div class="swap"><span class="plain">${w.plain}</span><span class="arrow">\u2192</span><span class="target">${w.word}</span></div>
+        <p class="nuance">${w.nuance}</p>
+        <div class="spectrum">
+          <div class="spectrum-track"><div class="spectrum-dot"></div></div>
+          <div class="spectrum-labels"><span>plain</span><span>precise &amp; vivid</span></div>
+        </div>
+        <div class="nearmiss">
+          <div class="nearmiss-title">Close, but not quite</div>
+          ${w.nearMiss.map(n=>`<div class="nm-item"><strong>${n.word}</strong> \u2014 ${n.why}</div>`).join('')}
+        </div>
+        <p class="example">${w.example.replace('___', `<strong>${w.word}</strong>`)}</p>
+      </div>
+    `;
+    card.addEventListener('click', (e)=>{
+      card.classList.toggle('expanded');
+    });
+    card.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); card.classList.toggle('expanded'); }
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ---------- Drill view ----------
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let queue = shuffle(WORDS.map((_,i)=>i));
+let qPos = 0;
+let score = {correct:0, total:0};
+let mastered = new Set();
+
+function currentWord(){ return WORDS[queue[qPos]]; }
+
+function startDrillWord(){
+  const w = currentWord();
+  document.getElementById('scenario').innerHTML = w.example.replace('___', '<span class="blank">_____</span>');
+  const opts = shuffle([w.word, w.plain, w.nearMiss[0].word, w.nearMiss[1].word]);
+  const optEl = document.getElementById('options');
+  optEl.innerHTML = '';
+  opts.forEach(optWord=>{
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = optWord;
+    btn.addEventListener('click', ()=> selectAnswer(optWord));
+    optEl.appendChild(btn);
+  });
+  document.getElementById('feedback').hidden = true;
+  updateStats();
+}
+
+function selectAnswer(chosen){
+  const w = currentWord();
+  const buttons = document.querySelectorAll('.opt');
+  buttons.forEach(b=>{
+    b.disabled = true;
+    if(b.textContent === w.word) b.classList.add('reveal');
+    if(b.textContent === chosen && chosen !== w.word) b.classList.add('incorrect');
+    if(b.textContent === chosen && chosen === w.word) { b.classList.remove('reveal'); b.classList.add('correct'); }
+  });
+
+  const isCorrect = chosen === w.word;
+  score.total++;
+  if(isCorrect){ score.correct++; mastered.add(w.word); }
+
+  const fb = document.getElementById('feedback');
+  const head = document.getElementById('fbHeadline');
+  head.textContent = isCorrect ? `Exactly \u2014 ${w.word} is the word.` : `Not quite \u2014 the sharper word was "${w.word}."`;
+  head.className = 'feedback-headline ' + (isCorrect ? 'correct':'incorrect');
+
+  const body = document.getElementById('fbBody');
+  let rows = '';
+  rows += `<div class="fb-row target"><strong>${w.word}</strong> \u2014 ${w.nuance}</div>`;
+  w.nearMiss.forEach(n=>{
+    rows += `<div class="fb-row"><strong>${n.word}</strong> \u2014 ${n.why}</div>`;
+  });
+  rows += `<div class="fb-row"><strong>${w.plain}</strong> \u2014 the plain version. Not wrong, just missing the precision or image ${w.word} adds.</div>`;
+  body.innerHTML = rows;
+
+  fb.hidden = false;
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('scoreText').textContent = `${score.correct}/${score.total}`;
+  document.getElementById('masteredText').textContent = mastered.size;
+  document.getElementById('totalWords').textContent = WORDS.length;
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  qPos++;
+  if(qPos >= queue.length){ queue = shuffle(WORDS.map((_,i)=>i)); qPos = 0; }
+  startDrillWord();
+});
+
+// ---------- Tabs ----------
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const view = tab.dataset.view;
+    document.getElementById('browseView').hidden = view !== 'browse';
+    document.getElementById('drillView').hidden = view !== 'drill';
+    if(view === 'drill' && document.getElementById('options').children.length === 0){
+      startDrillWord();
+    }
+  });
+});
+
+// ---------- Init ----------
+renderFilters();
+renderGrid();
+document.getElementById('totalWords').textContent = WORDS.length;
+</script>
+</body>
+</html>
