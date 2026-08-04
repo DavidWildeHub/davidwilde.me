@@ -1,3 +1,6 @@
+/* Forces bulleted (disc) list markers on any <ul> that links to this
+   stylesheet, overriding a browser/framework default if one is present.
+   Not currently linked from any page in this repo — see CLAUDE.md. */
 ul{
     list-style: disc !important;
 }

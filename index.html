@@ -1,42 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>David Wilde</title>
+<meta name="description" content="David Wilde — personal website, projects, and learning progress.">
+<!-- Load the three Google Fonts used across the site: Fraunces for headings,
+     Source Sans 3 for body text, and IBM Plex Mono for small labels/meta text. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Design tokens (CSS custom properties): every color on the page is defined
+     once here and reused via var(--name) below, so the whole palette can be
+     changed by editing just these values. */
+  :root{
+    --paper:#eef0e4;
+    --paper-warm:#e6e8da;
+    --card:#f6f7ef;
+    --ink:#20261c;
+    --ink-soft:#4b5142;
+    --forest:#3f5233;
+    --forest-dark:#2c3a24;
+    --amber:#b6852f;
+    --amber-light:#e8c98a;
+    --rose:#a3524a;
+    --sage:#6f7d5f;
+    --line: rgba(32,38,28,0.14);
+    --shadow: 0 1px 2px rgba(32,38,28,0.06);
+  }
+  /* When the visitor's OS/browser is set to dark mode, this block redefines
+     the same variable names with darker/lighter equivalents. Nothing below
+     this point needs to change — it all just reads var(--paper) etc. and
+     gets the dark colors automatically. */
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#1b2019;
+      --paper-warm:#20261e;
+      --card:#242b21;
+      --ink:#e9ece2;
+      --ink-soft:#b8c0ac;
+      --forest:#8fae74;
+      --forest-dark:#cfe0bb;
+      --amber:#e0b563;
+      --amber-light:#8a6c33;
+      --rose:#d98b83;
+      --sage:#9fb086;
+      --line: rgba(233,236,226,0.14);
+      --shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  a{color:inherit;}
+  .page{max-width:920px;margin:0 auto;padding:48px 22px 80px;}
+
+  /* ---- Hero: the name/tagline/weather block at the top of the page ---- */
+  .hero{margin-bottom:40px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--sage);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(36px, 7vw, 56px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+    color:var(--forest-dark);
+  }
+  .tagline{
+    font-size:17px;
+    color:var(--ink-soft);
+    max-width:520px;
+    margin:0 0 22px;
+  }
+  .meta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .weather-chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:7px 13px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+  }
+  .meta-link{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    border-bottom:1px solid var(--line);
+    padding-bottom:1px;
+    transition:color .15s, border-color .15s;
+  }
+  .meta-link:hover{color:var(--forest-dark);border-color:var(--forest);}
+
+  /* ---- Section nav: the "Projects / Personal" jump links under the hero ---- */
+  .section-nav{
+    display:flex;gap:20px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:36px;
+    position:sticky;top:0;
+    background:var(--paper);
+    padding-top:6px;
+  }
+  .section-nav a{
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    padding:8px 2px 12px;
+    border-bottom:2px solid transparent;
+    transition:color .15s, border-color .15s;
+  }
+  .section-nav a:hover{color:var(--forest-dark);border-bottom-color:var(--amber);}
+
+  .section{margin-bottom:52px;scroll-margin-top:52px;}
+  .section h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0 0 18px;
+    color:var(--forest-dark);
+  }
+
+  /* ---- Card grid: shared by both the Projects and Personal sections ----
+     .grid lays cards out responsively (as many 260px+ columns as fit).
+     .card is the box itself; a.card is the clickable variant used when the
+     whole card links somewhere (Flexbox + margin-top:auto on .cta/.status
+     is what keeps that little link/label pinned to the bottom of every card
+     even when the description text above it is a different length). */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:14px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:20px 20px 18px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    transition:border-color .15s, transform .15s;
+  }
+  a.card{text-decoration:none;color:inherit;}
+  a.card:hover{border-color:var(--forest);transform:translateY(-2px);}
+  .card:focus-visible{outline:2px solid var(--forest);outline-offset:2px;}
+
+  .card-thumb{
+    width:100%;
+    height:130px;
+    object-fit:cover;
+    border-radius:5px;
+    margin-bottom:14px;
+    display:block;
+  }
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:3px 8px;
+    border-radius:100px;
+    background:var(--paper-warm);
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .card h3{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 8px;
+    color:var(--ink);
+  }
+  .card p{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:0 0 14px;
+    flex-grow:1;
+  }
+  .card ul{
+    margin:0 0 14px;
+    padding-left:18px;
+    font-size:14.5px;
+    color:var(--ink-soft);
+  }
+  .card ul li + li{margin-top:4px;}
+  .card ul.sub{margin:6px 0 12px;}
+  .card .group-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--sage);
+    margin:0 0 4px;
+  }
+  .cta{
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--forest-dark);
+    margin-top:auto;
+  }
+  a.card:hover .cta{color:var(--amber);}
+  .status{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    margin-top:auto;
+  }
+
+  footer{
+    margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  footer a{
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--line);
+    text-decoration:none;
+  }
+  footer a:hover{color:var(--forest-dark);border-color:var(--forest);}
+</style>
+<!-- Page markup below: a hero header, a two-item nav, then <main> holding
+     the #projects and #personal sections. Each section is just a <div
+     class="grid"> of hand-written .card blocks — to add a new project or
+     personal item, copy an existing <a class="card"> or <div class="card">
+     block and edit the text inside it. -->
+
 </head>
+<body>
+<div class="page">
 
+  <header class="hero">
+    <div class="eyebrow">Personal site</div>
+    <h1>David Wilde</h1>
+    <p class="tagline">Notes on the things I'm building and learning — a bit of code, a bit of IT, a bit of garden.</p>
+    <div class="meta-row">
+      <span class="weather-chip" id="weather">Loading local weather…</span>
+      <a class="meta-link" href="https://github.com/DavidWildeHub" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </header>
 
-<h1>David Wilde's Personal Website</h1>
-<h2>Projects</h2>
-<ul>
-  <li>Personal Website</li>
-  <li>Weather App</li> 
-    <ul>
-      <li>python</li>
-      <li>FASTapi</li>
-      <li>Uvicorn</li>  
-    </ul>
-  <li>PowerShell Automation</li>
-    <ul>
-      <li>Create a new user in Active Directory</li>
-    </ul>
-    <li><a href="garden.html">Gardening</a></li>
-</ul>
-<h2>Courses</h2>
-  <ul>
-    <li>CSC 222 - Object Oriented Programming (Java)</li>
-  </ul>
-<h2>Certificates</h2>
-  <ul>
-    <li>ITIL 4 Cert</li>
-    <li>Google IT Helpdesk</li>
-  </ul>
-<h2>Resume</h2>
-    <a href="secret/secret.html">Secret</a>
-    <div id="weather"></div>
+  <nav class="section-nav">
+    <a href="#projects">Projects</a>
+    <a href="#personal">Personal</a>
+  </nav>
+
+  <main>
+    <section id="projects" class="section">
+      <h2>Projects</h2>
+      <div class="grid">
+
+        <a class="card" href="nuance-cabinet.html">
+          <div class="tags"><span class="tag">JavaScript</span></div>
+          <h3>The Nuance Cabinet</h3>
+          <p>A vocabulary trainer that finds the sharper word for what you mean — browse by category or drill yourself with contextual quizzes.</p>
+          <span class="cta">Open the cabinet →</span>
+        </a>
+
+        <div class="card">
+          <div class="tags"><span class="tag">Python</span><span class="tag">FastAPI</span><span class="tag">Uvicorn</span></div>
+          <h3>Weather App</h3>
+          <p>A small API that serves live forecast data — the same kind of call powering the weather chip above.</p>
+          <span class="status">In progress</span>
+        </div>
+
+        <div class="card">
+          <div class="tags"><span class="tag">PowerShell</span><span class="tag">Active Directory</span></div>
+          <h3>PowerShell Automation</h3>
+          <p>Scripts for common sysadmin tasks, starting with automated new-user creation in Active Directory.</p>
+          <span class="status">In progress</span>
+        </div>
+
+        <a class="card" href="https://github.com/DavidWildeHub/davidwilde.me" target="_blank" rel="noopener">
+          <div class="tags"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">GitHub Pages</span></div>
+          <h3>This Website</h3>
+          <p>Hand-written, no framework, no build step — deployed straight from this repo.</p>
+          <span class="cta">View source ↗</span>
+        </a>
+
+      </div>
+    </section>
+
+    <section id="personal" class="section">
+      <h2>Personal</h2>
+      <div class="grid">
+
+        <a class="card" href="garden.html">
+          <img class="card-thumb" src="Garden picture 3.jpg" alt="The main garden bed">
+          <h3>Garden</h3>
+          <p>An 8' × 4' raised bed — tracking what grows, and what doesn't.</p>
+          <span class="cta">See the garden →</span>
+        </a>
+
+        <div class="card">
+          <h3>Coursework &amp; Certificates</h3>
+          <div class="group-label">Coursework</div>
+          <ul class="sub">
+            <li>CSC 222 — Object-Oriented Programming (Java)</li>
+          </ul>
+          <div class="group-label">Certificates</div>
+          <ul class="sub">
+            <li>ITIL 4</li>
+            <li>Google IT Helpdesk</li>
+          </ul>
+        </div>
+
+        <a class="card" href="secret/secret.html">
+          <h3>Resume</h3>
+          <p>Where I've worked and what I've learned along the way.</p>
+          <span class="cta">View résumé →</span>
+        </a>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 David Wilde &middot; <a href="https://github.com/DavidWildeHub/davidwilde.me" target="_blank" rel="noopener">Source on GitHub</a></p>
+  </footer>
+
+</div>
 
 <script>
+// Fetch today's forecast from the National Weather Service's free public API
+// (no API key needed) for a fixed grid point, and drop the current period's
+// temperature + short description into the "weather" chip in the hero.
+// fetch() returns a Promise; each .then() runs once the previous step
+// finishes, and .catch() runs instead if any step fails (e.g. offline).
 fetch("https://api.weather.gov/gridpoints/AKQ/36,76/forecast")
   .then(response => response.json())
   .then(data => {
-    document.getElementById("weather").innerHTML =
-      data.properties.periods[0].temperature + "°F";
+    const period = data.properties.periods[0]; // periods[0] = current/next forecast period
+    document.getElementById("weather").textContent =
+      `${period.temperature}°${period.temperatureUnit} · ${period.shortForecast}`;
+  })
+  .catch(() => {
+    document.getElementById("weather").textContent = "Weather unavailable";
   });
 </script>
+</body>
+</html>

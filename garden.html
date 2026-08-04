@@ -1,5 +1,108 @@
-<h1>My Garden</h1>
-
-<h2>Main Garden - 8' x 4' raised bed </h2>
-
-<img src="Garden picture 3.jpg" class="responsive-image" alt="Garden picture #1">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garden — David Wilde</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;700&family=Source+Sans+3:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Shared rule that keeps the garden photo from stretching past its
+     natural size while staying full-width on small screens. -->
+<link rel="stylesheet" href="responsive-image.css">
+<style>
+  /* Same color/font design tokens as index.html, kept in sync by hand since
+     each page here is self-contained (see CLAUDE.md). */
+  :root{
+    --paper:#eef0e4;
+    --card:#f6f7ef;
+    --ink:#20261c;
+    --ink-soft:#4b5142;
+    --forest-dark:#2c3a24;
+    --sage:#6f7d5f;
+    --line: rgba(32,38,28,0.14);
+    --shadow: 0 1px 2px rgba(32,38,28,0.06);
+  }
+  /* Dark-mode overrides for the same variable names — see index.html. */
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#1b2019;
+      --card:#242b21;
+      --ink:#e9ece2;
+      --ink-soft:#b8c0ac;
+      --forest-dark:#cfe0bb;
+      --sage:#9fb086;
+      --line: rgba(233,236,226,0.14);
+      --shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    line-height:1.5;
+  }
+  .page{max-width:700px;margin:0 auto;padding:40px 22px 70px;}
+  .back-link{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    margin-bottom:28px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:1px;
+  }
+  .back-link:hover{color:var(--forest-dark);}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--sage);
+    text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(30px, 6vw, 42px);
+    margin:0 0 6px;
+    color:var(--forest-dark);
+  }
+  h2{
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+  }
+  figure{margin:0;}
+  figure img{
+    border-radius:8px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--line);
+  }
+  figcaption{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <!-- Simple one-page layout: a link back to the homepage, a title, and a
+       single photo. Add more <figure> blocks below to show more photos. -->
+  <a class="back-link" href="index.html">← Back to home</a>
+  <div class="eyebrow">Personal</div>
+  <h1>My Garden</h1>
+  <h2>Main garden — 8' &times; 4' raised bed</h2>
+  <figure>
+    <img src="Garden picture 3.jpg" class="responsive-image" alt="The main 8 by 4 foot raised garden bed">
+    <figcaption>Latest look at the raised bed.</figcaption>
+  </figure>
+</div>
+</body>
+</html>

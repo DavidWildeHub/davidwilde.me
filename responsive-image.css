@@ -1,3 +1,5 @@
+/* Apply this class to an <img> to keep it from overflowing its container
+   or growing past its natural size, while scaling down on small screens. */
 .responsive-image {
   width: 100%;  /* Prevents the image from stretching larger than its original size */
   max-width: 600px;

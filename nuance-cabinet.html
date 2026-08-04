@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  /* Design tokens — same palette/font approach as index.html and
+     garden.html, kept in sync by hand since this page is self-contained. */
   :root{
     --paper:#eef0e4;
     --paper-warm:#e6e8da;
@@ -33,6 +35,18 @@
     line-height:1.5;
   }
   .app{max-width:920px;margin:0 auto;padding:36px 22px 80px;}
+
+  .back-link{
+    display:inline-block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-decoration:none;
+    margin-bottom:22px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:1px;
+  }
+  .back-link:hover{color:var(--forest-dark);}
 
   header{margin-bottom:34px;}
   .eyebrow{
@@ -305,7 +319,13 @@
 </style>
 </head>
 <body>
+<!-- This page has two "views" that live side by side in the markup and get
+     shown/hidden with the `hidden` attribute rather than navigating to a new
+     page: #browseView (the card grid) and #drillView (the quiz). The tab
+     buttons in the header just toggle which one is visible — see the
+     "Tabs" section of the script at the bottom. -->
 <div class="app">
+  <a class="back-link" href="index.html">← Back to home</a>
   <header>
     <div class="eyebrow">A vocabulary tool for people who already speak english well</div>
     <h1>The Nuance Cabinet</h1>
@@ -316,11 +336,16 @@
     </nav>
   </header>
 
+  <!-- Browse view: filled in by renderFilters()/renderGrid() below. Both
+       #filters and #grid start empty — all of their content is built with
+       JavaScript from the WORDS array, not written here by hand. -->
   <main id="browseView">
     <div class="filters" id="filters"></div>
     <div class="grid" id="grid"></div>
   </main>
 
+  <!-- Drill view (the quiz). Starts hidden; the "Drill" tab reveals it and
+       triggers the first question via startDrillWord(). -->
   <main id="drillView" hidden>
     <div class="drill-stats">
       <span>Score: <b id="scoreText">0/0</b></span>
@@ -340,6 +365,21 @@
 </div>
 
 <script>
+// All the app's content lives in this one array — there's no server or
+// database. Every entry is an object describing one vocabulary word:
+//   word      - the target word itself
+//   phon      - phonetic pronunciation, shown in the browse view
+//   pos       - part of speech ("adj.", "verb", "noun")
+//   cat       - category, used for the filter chips and drill categorizing
+//   def       - dictionary-style definition
+//   plain     - the plainer, more common word this one upgrades
+//   nuance    - explanation of *why* the target word is sharper than `plain`
+//   example   - a sentence with "___" where the word belongs (used in both
+//               the browse card and the drill quiz)
+//   nearMiss  - two other plausible-but-wrong words, each with a `why` note
+//               explaining what makes them close but not quite right; these
+//               double as wrong answers in the drill quiz.
+// To add a new word, copy one of these objects and fill in your own values.
 const WORDS = [
   {word:"ubiquitous", phon:"yoo-BIK-wi-tuhs", pos:"adj.", cat:"Precision",
    def:"present, appearing, or found everywhere.",
@@ -490,6 +530,8 @@ const WORDS = [
    nearMiss:[{word:"accepting", why:"can be a positive, chosen peace; resigned implies giving up instead."},{word:"defeated", why:"stronger and more dramatic; resigned is quieter, a settled kind of giving up."}]}
 ];
 
+// Background/text colors for each category's little tag pill, keyed by the
+// same `cat` string used in WORDS above.
 const CAT_COLORS = {
   "Precision": {bg:"#f0e2c4", fg:"#7a5a1c"},
   "Vivid Imagery": {bg:"#dbe6d1", fg:"#3f5233"},
@@ -498,9 +540,14 @@ const CAT_COLORS = {
 };
 
 // ---------- Browse view ----------
+// Build the filter chip list once: "All" plus every unique category found in
+// WORDS (Set removes duplicates, then we spread it back into an array).
 const CATS = ["All", ...Array.from(new Set(WORDS.map(w=>w.cat)))];
-let activeFilter = "All";
+let activeFilter = "All"; // which chip is currently selected
 
+// Draws the row of filter chips ("All", "Precision", ...) into #filters.
+// Called once on page load, then again any time a chip is clicked so the
+// "active" highlight moves to the new selection.
 function renderFilters(){
   const el = document.getElementById('filters');
   el.innerHTML = '';
@@ -513,6 +560,11 @@ function renderFilters(){
   });
 }
 
+// Draws the word cards into #grid, filtered down to the active category.
+// Each card starts collapsed; clicking (or pressing Enter/Space on) it
+// toggles the "expanded" class, which is what actually reveals the detail
+// section — see the .card-detail / .card.expanded rules in the <style>
+// block above.
 function renderGrid(){
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
@@ -554,6 +606,9 @@ function renderGrid(){
 }
 
 // ---------- Drill view ----------
+// Randomly reorders a copy of the given array (Fisher-Yates shuffle) without
+// modifying the original. Used both to randomize question order and to
+// scramble each question's four answer choices.
 function shuffle(arr){
   const a = [...arr];
   for(let i=a.length-1;i>0;i--){
@@ -563,13 +618,20 @@ function shuffle(arr){
   return a;
 }
 
+// `queue` holds WORDS *indexes* in quiz order (not the words themselves), so
+// re-shuffling doesn't lose track of which word is "current". `qPos` is how
+// far through the queue we are; when it runs off the end, a fresh shuffled
+// queue starts (see the nextBtn handler below).
 let queue = shuffle(WORDS.map((_,i)=>i));
 let qPos = 0;
-let score = {correct:0, total:0};
-let mastered = new Set();
+let score = {correct:0, total:0};      // right answers vs. questions answered this session
+let mastered = new Set();              // words answered correctly at least once
 
 function currentWord(){ return WORDS[queue[qPos]]; }
 
+// Renders one drill question: the fill-in-the-blank sentence, and four
+// shuffled answer buttons (the correct word, its plain synonym, and its two
+// near-miss words from the WORDS entry).
 function startDrillWord(){
   const w = currentWord();
   document.getElementById('scenario').innerHTML = w.example.replace('___', '<span class="blank">_____</span>');
@@ -587,6 +649,10 @@ function startDrillWord(){
   updateStats();
 }
 
+// Called when the user clicks one of the four answer buttons. Locks in the
+// answer (disables all buttons), marks the correct one green and any wrong
+// pick red, updates the running score, and reveals the feedback panel
+// explaining the target word and its near-misses.
 function selectAnswer(chosen){
   const w = currentWord();
   const buttons = document.querySelectorAll('.opt');
@@ -619,12 +685,15 @@ function selectAnswer(chosen){
   updateStats();
 }
 
+// Refreshes the "Score: x/y" and "Mastered: n" text in the drill header.
 function updateStats(){
   document.getElementById('scoreText').textContent = `${score.correct}/${score.total}`;
   document.getElementById('masteredText').textContent = mastered.size;
   document.getElementById('totalWords').textContent = WORDS.length;
 }
 
+// "Next word" button: advance to the next queued question, or reshuffle a
+// brand-new queue once we've gone through every word.
 document.getElementById('nextBtn').addEventListener('click', ()=>{
   qPos++;
   if(qPos >= queue.length){ queue = shuffle(WORDS.map((_,i)=>i)); qPos = 0; }
@@ -632,6 +701,11 @@ document.getElementById('nextBtn').addEventListener('click', ()=>{
 });
 
 // ---------- Tabs ----------
+// Switching tabs just toggles the `hidden` attribute on the two <main>
+// blocks — nothing is destroyed/recreated, so switching back to Browse
+// keeps whatever card you had expanded. The drill's first question is only
+// generated the first time you open the Drill tab (checked via whether
+// #options is still empty), not every time you switch back to it.
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -646,6 +720,7 @@ document.querySelectorAll('.tab').forEach(tab=>{
 });
 
 // ---------- Init ----------
+// Build the initial Browse view as soon as the script runs.
 renderFilters();
 renderGrid();
 document.getElementById('totalWords').textContent = WORDS.length;
